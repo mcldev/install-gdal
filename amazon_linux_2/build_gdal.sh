@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Update Amazon Linux
+yum install amazon-linux-extras
+yum upgrade -y && yum update -y
+amazon-linux-extras install -y kernel-ng
+
 # Installation of GDAL and dependencies.
 # Based on https://gist.github.com/hervenivon/fe3a327bc28b142e51beb38ef11844c0
 
@@ -8,6 +13,8 @@ export PYTHON_SHORT_VERSION_WHL=38
 export GEOS_VERSION=3.9.0
 export PROJ_VERSION=6.1.1
 export GDAL_VERSION=3.1.4
+export NUMPY_VERSION=1.19.3
+
 # Be careful not to install PROJ version 6.2.0 or newer
 # because the one from the yum packages is only SQLite version 3.7.17.
 
@@ -85,13 +92,17 @@ export PROJ_LIB=/usr/local/proj/share/proj
 export GDAL_DATA=/usr/local/gdal/share/gdal
 export PATH=/usr/local/gdal/bin:$PATH
 ldconfig
+
+# Check GDAL Version
 echo "Check GDAL Version here:"
 gdal-config --version
 
 # Need to have Numpy installed to avoid _gdal_array errors
 yum install -y numpy
 pip${PYTHON_SHORT_VERSION} uninstall -y GDAL
-pip${PYTHON_SHORT_VERSION} install numpy
+pip${PYTHON_SHORT_VERSION} install numpy==${NUMPY_VERSION} --force-reinstall
+
+# Make the GDAL Python Wheel
 pip${PYTHON_SHORT_VERSION} wheel GDAL==${GDAL_VERSION} -w /tmp
 pip${PYTHON_SHORT_VERSION} install /tmp/GDAL-${GDAL_VERSION}-cp${PYTHON_SHORT_VERSION_WHL}-cp${PYTHON_SHORT_VERSION_WHL}-linux_x86_64.whl --force-reinstall
 echo "Check Python GDAL Version and File here:"
